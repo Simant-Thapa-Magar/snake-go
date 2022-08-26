@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 
@@ -100,17 +101,47 @@ func handleUserInput(key string) {
 	}
 }
 
-func updateSnake() {
+func getSnakeHeadCoordinates() (int, int) {
 	snakeHead := snake.points[len(snake.points)-1]
+	return snakeHead.x, snakeHead.y
+}
+
+func updateSnake() {
+	snakeHeadX, snakeHeadY := getSnakeHeadCoordinates()
 	snake.points = append(snake.points, &Coordinate{
-		snakeHead.x + snake.columnVelocity,
-		snakeHead.y + snake.rowVelocity,
+		snakeHeadX + snake.columnVelocity,
+		snakeHeadY + snake.rowVelocity,
 	})
 	snake.points = snake.points[1:]
 }
 
-func updateApple() {
+func isAppleInsideSnake() bool {
+	for _, snakeCoordinate := range snake.points {
+		if snakeCoordinate.x == apple.point.x && snakeCoordinate.y == apple.point.y {
+			return true
+		}
+	}
+	return false
+}
 
+func getNewAppleCoordinate() (int, int) {
+	rand.Seed(time.Now().UnixMicro())
+	randomX := rand.Intn(FRAME_WIDTH)
+	randomY := rand.Intn(FRAME_HEIGHT)
+
+	newCoordinate := &Coordinate{
+		randomX, randomY,
+	}
+
+	transformCoordinateInsideFrame(newCoordinate)
+
+	return newCoordinate.x, newCoordinate.y
+}
+
+func updateApple() {
+	for isAppleInsideSnake() {
+		apple.point.x, apple.point.y = getNewAppleCoordinate()
+	}
 }
 
 func updateGameState() {
