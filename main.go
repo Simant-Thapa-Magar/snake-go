@@ -274,12 +274,17 @@ func initScreen() {
 		Foreground(tcell.ColorWhite)
 	Screen.SetStyle(defStyle)
 	screenWidth, screenHeight = Screen.Size()
+
+	if screenWidth < FRAME_WIDTH || screenHeight < FRAME_HEIGHT {
+		fmt.Printf("The game frame is defined with %d width and %d height. Increase terminal size and try again ", FRAME_WIDTH, FRAME_HEIGHT)
+		os.Exit(1)
+	}
 }
 
-func print(x, y, w, h int, char rune) {
+func print(x, y, w, h int, style tcell.Style, char rune) {
 	for i := 0; i < w; i++ {
 		for j := 0; j < h; j++ {
-			Screen.SetContent(x+i, y+j, char, nil, tcell.StyleDefault)
+			Screen.SetContent(x+i, y+j, char, nil, style)
 		}
 	}
 }
@@ -310,19 +315,21 @@ func displayGameObjects() {
 }
 
 func displaySnake() {
+	style := tcell.StyleDefault.Foreground(tcell.ColorDarkGreen.TrueColor())
 	for _, snakeCoordinate := range snake.points {
-		print(snakeCoordinate.x, snakeCoordinate.y, 1, 1, snake.symbol)
+		print(snakeCoordinate.x, snakeCoordinate.y, 1, 1, style, snake.symbol)
 	}
 }
 
 func displayApple() {
-	print(apple.point.x, apple.point.y, 1, 1, apple.symbol)
+	style := tcell.StyleDefault.Foreground(tcell.ColorDarkRed.TrueColor())
+	print(apple.point.x, apple.point.y, 1, 1, style, apple.symbol)
 }
 
 func displayGamePausedInfo() {
 	_, frameY := getFrameOrigin()
-	printAtCenter(frameY-5, "Game Paused !!", true)
-	printAtCenter(frameY-4, "Press p to resume", true)
+	printAtCenter(frameY-2, "Game Paused !!", true)
+	printAtCenter(frameY-1, "Press p to resume", true)
 }
 
 func displayGameOverInfo() {
@@ -334,7 +341,7 @@ func displayGameOverInfo() {
 func printAtCenter(startY int, content string, trackClear bool) {
 	startX := (screenWidth - len(content)) / 2
 	for i := 0; i < len(content); i++ {
-		print(startX+i, startY, 1, 1, rune(content[i]))
+		print(startX+i, startY, 1, 1, tcell.StyleDefault, rune(content[i]))
 		if trackClear {
 			coordinatesToClear = append(coordinatesToClear, &Coordinate{startX + i, startY})
 		}
@@ -344,7 +351,7 @@ func printAtCenter(startY int, content string, trackClear bool) {
 
 func clearScreen() {
 	for _, coordinate := range coordinatesToClear {
-		print(coordinate.x, coordinate.y, 1, 1, ' ')
+		print(coordinate.x, coordinate.y, 1, 1, tcell.StyleDefault, ' ')
 	}
 }
 
@@ -363,14 +370,14 @@ func printUnfilledRectangle(xOrigin, yOrigin, width, height, borderThickness int
 			upperBorder = horizontalOutline
 			lowerBorder = horizontalOutline
 		}
-		print(xOrigin+i, yOrigin, borderThickness, borderThickness, upperBorder)
-		print(xOrigin+i, yOrigin+height, borderThickness, borderThickness, lowerBorder)
+		print(xOrigin+i, yOrigin, borderThickness, borderThickness, tcell.StyleDefault, upperBorder)
+		print(xOrigin+i, yOrigin+height, borderThickness, borderThickness, tcell.StyleDefault, lowerBorder)
 		// lower boundry
 	}
 
 	// side boundry
 	for i := 1; i < height; i++ {
-		print(xOrigin, yOrigin+i, borderThickness, borderThickness, verticalBorder)
-		print(xOrigin+width-1, yOrigin+i, borderThickness, borderThickness, verticalBorder)
+		print(xOrigin, yOrigin+i, borderThickness, borderThickness, tcell.StyleDefault, verticalBorder)
+		print(xOrigin+width-1, yOrigin+i, borderThickness, borderThickness, tcell.StyleDefault, verticalBorder)
 	}
 }
