@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/encoding"
@@ -44,19 +45,77 @@ const APPLE_SYMBOL = 0x25CF
 func main() {
 	initScreen()
 	initializeGameObjects()
-	displayFrame()
-	displayGameObjects()
+	userInput := readUserInput()
+	var key string
 	for {
-		switch ev := Screen.PollEvent().(type) {
-		case *tcell.EventResize:
-			Screen.Sync()
-		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyEscape {
-				Screen.Fini()
-				os.Exit(0)
+		displayFrame()
+		key = getUserInput(userInput)
+		handleUserInput(key)
+		updateGameState()
+		displayGameObjects()
+		time.Sleep(75 * time.Millisecond)
+		Screen.Clear()
+	}
+}
+
+func getUserInput(userInput chan string) string {
+	var key string
+	select {
+	case key = <-userInput:
+	default:
+		key = ""
+	}
+	return key
+}
+
+func readUserInput() chan string {
+	userInput := make(chan string)
+	go func() {
+		for {
+			switch ev := Screen.PollEvent().(type) {
+			case *tcell.EventKey:
+				userInput <- ev.Name()
 			}
 		}
+	}()
+	return userInput
+}
+
+func handleUserInput(key string) {
+	if key == "Rune[q]" {
+		Screen.Fini()
+		os.Exit(0)
+	} else if key == "Up" && snake.rowVelocity == 0 {
+		snake.rowVelocity = -1
+		snake.columnVelocity = 0
+	} else if key == "Down" && snake.rowVelocity == 0 {
+		snake.rowVelocity = 1
+		snake.columnVelocity = 0
+	} else if key == "Left" && snake.columnVelocity == 0 {
+		snake.rowVelocity = 0
+		snake.columnVelocity = -1
+	} else if key == "Right" && snake.columnVelocity == 0 {
+		snake.rowVelocity = 0
+		snake.columnVelocity = 1
 	}
+}
+
+func updateSnake() {
+	snakeHead := snake.points[len(snake.points)-1]
+	snake.points = append(snake.points, &Coordinate{
+		snakeHead.x + snake.columnVelocity,
+		snakeHead.y + snake.rowVelocity,
+	})
+	snake.points = snake.points[1:]
+}
+
+func updateApple() {
+
+}
+
+func updateGameState() {
+	updateSnake()
+	updateApple()
 }
 
 func transformCoordinateInsideFrame(coordinate *Coordinate) {
@@ -151,11 +210,13 @@ func getFrameOrigin() (int, int) {
 func displayFrame() {
 	frameOriginX, frameOriginY := getFrameOrigin()
 	printUnfilledRectangle(frameOriginX, frameOriginY, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BORDER_THICKNESS, FRAME_BORDER_HORIZONTAL, FRAME_BORDER_VERTICAL, FRAME_BORDER_TOP_LEFT, FRAME_BORDER_TOP_RIGHT, FRAME_BORDER_BOTTOM_RIGHT, FRAME_BORDER_BOTTOM_LEFT)
+	Screen.Show()
 }
 
 func displayGameObjects() {
 	displaySnake()
 	displayApple()
+	Screen.Show()
 }
 
 func displaySnake() {
