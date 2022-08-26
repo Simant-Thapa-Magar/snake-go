@@ -50,6 +50,7 @@ func main() {
 	initScreen()
 	initializeGameObjects()
 	displayFrame()
+	displayGameScore()
 	userInput := readUserInput()
 	var key string
 	for !isGameOver {
@@ -129,6 +130,7 @@ func updateSnake() {
 		snake.points = snake.points[1:]
 	} else {
 		score++
+		displayGameScore()
 	}
 	updateSnakeIfBeyoundBorder()
 	if isSnakeEatingItself() {
@@ -180,8 +182,8 @@ func isAppleInsideSnake() bool {
 
 func getNewAppleCoordinate() (int, int) {
 	rand.Seed(time.Now().UnixMicro())
-	randomX := rand.Intn(FRAME_WIDTH) + 1
-	randomY := rand.Intn(FRAME_HEIGHT) + 1
+	randomX := rand.Intn(FRAME_WIDTH - 1)
+	randomY := rand.Intn(FRAME_HEIGHT - 1)
 
 	newCoordinate := &Coordinate{
 		randomX, randomY,
@@ -210,8 +212,16 @@ func updateGameState() {
 
 func transformCoordinateInsideFrame(coordinate *Coordinate) {
 	frameOriginX, frameOriginY := getFrameOrigin()
+	frameOriginX++
+	frameOriginY++
 	coordinate.x += frameOriginX
 	coordinate.y += frameOriginY
+	for coordinate.x >= frameOriginX+FRAME_WIDTH {
+		coordinate.x -= FRAME_WIDTH
+	}
+	for coordinate.y >= frameOriginY+FRAME_HEIGHT {
+		coordinate.y -= FRAME_HEIGHT
+	}
 }
 
 func initializeGameObjects() {
@@ -289,15 +299,6 @@ func print(x, y, w, h int, style tcell.Style, char rune) {
 	}
 }
 
-// func displayHelloWorld(s tcell.Screen) {
-// 	w, h := s.Size()
-// 	s.Clear()
-// 	style := tcell.StyleDefault.Foreground(tcell.ColorCadetBlue.TrueColor()).Background(tcell.ColorWhite)
-// 	emitStr(s, w/2-7, h/2, style, "Hello, World!")
-// 	emitStr(s, w/2-9, h/2+1, tcell.StyleDefault, "Press ESC to exit.")
-// 	s.Show()
-// }
-
 func getFrameOrigin() (int, int) {
 	return (screenWidth-FRAME_WIDTH)/2 - 1, (screenHeight-FRAME_HEIGHT)/2 - 1
 }
@@ -336,6 +337,11 @@ func displayGameOverInfo() {
 	centerY := (screenHeight - FRAME_HEIGHT) / 2
 	printAtCenter(centerY-1, "Game Over !!", false)
 	printAtCenter(centerY, fmt.Sprintf("Your Score : %d", score), false)
+}
+
+func displayGameScore() {
+	_, frameY := getFrameOrigin()
+	printAtCenter(frameY+FRAME_HEIGHT+2, fmt.Sprintf("Current Score : %d", score), false)
 }
 
 func printAtCenter(startY int, content string, trackClear bool) {
