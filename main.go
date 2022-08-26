@@ -8,6 +8,23 @@ import (
 	"github.com/gdamore/tcell/v2/encoding"
 )
 
+type Coordinate struct {
+	x, y int
+}
+
+type Snake struct {
+	points                      []*Coordinate
+	columnVelocity, rowVelocity int
+	symbol                      rune
+}
+
+type Apple struct {
+	point  *Coordinate
+	symbol rune
+}
+
+var snake *Snake
+var apple *Apple
 var Screen tcell.Screen
 var screenWidth, screenHeight int
 
@@ -20,11 +37,15 @@ const FRAME_BORDER_TOP_LEFT = '╔'
 const FRAME_BORDER_TOP_RIGHT = '╗'
 const FRAME_BORDER_BOTTOM_RIGHT = '╝'
 const FRAME_BORDER_BOTTOM_LEFT = '╚'
+const SNAKE_SYMBOL = 0x2588
+const APPLE_SYMBOL = 0x25CF
 
 // This program just prints "Hello, World!".  Press ESC to exit.
 func main() {
 	initScreen()
+	initializeGameObjects()
 	displayFrame()
+	displayGameObjects()
 	for {
 		switch ev := Screen.PollEvent().(type) {
 		case *tcell.EventResize:
@@ -36,6 +57,54 @@ func main() {
 			}
 		}
 	}
+}
+
+func transformCoordinateInsideFrame(coordinate *Coordinate) {
+	frameOriginX, frameOriginY := getFrameOrigin()
+	coordinate.x += frameOriginX
+	coordinate.y += frameOriginY
+}
+
+func initializeGameObjects() {
+	snake = &Snake{
+		points:         getInitialSnakeCoordinates(),
+		columnVelocity: 0,
+		rowVelocity:    1,
+		symbol:         SNAKE_SYMBOL,
+	}
+
+	apple = &Apple{
+		point:  getInitialAppleCoordinates(),
+		symbol: APPLE_SYMBOL,
+	}
+}
+
+func getInitialSnakeCoordinates() []*Coordinate {
+	snakeInitialCoordinate1 := &Coordinate{8, 4}
+	transformCoordinateInsideFrame(snakeInitialCoordinate1)
+
+	snakeInitialCoordinate2 := &Coordinate{8, 5}
+	transformCoordinateInsideFrame(snakeInitialCoordinate2)
+
+	snakeInitialCoordinate3 := &Coordinate{8, 6}
+	transformCoordinateInsideFrame(snakeInitialCoordinate3)
+
+	snakeInitialCoordinate4 := &Coordinate{8, 7}
+	transformCoordinateInsideFrame(snakeInitialCoordinate4)
+
+	return []*Coordinate{
+		{snakeInitialCoordinate1.x, snakeInitialCoordinate1.y},
+		{snakeInitialCoordinate2.x, snakeInitialCoordinate2.y},
+		{snakeInitialCoordinate3.x, snakeInitialCoordinate3.y},
+		{snakeInitialCoordinate4.x, snakeInitialCoordinate4.y},
+	}
+}
+
+func getInitialAppleCoordinates() *Coordinate {
+	appleInitialCoordinate := &Coordinate{FRAME_WIDTH / 2, FRAME_HEIGHT / 2}
+	transformCoordinateInsideFrame(appleInitialCoordinate)
+
+	return appleInitialCoordinate
 }
 
 func initScreen() {
@@ -82,6 +151,21 @@ func getFrameOrigin() (int, int) {
 func displayFrame() {
 	frameOriginX, frameOriginY := getFrameOrigin()
 	printUnfilledRectangle(frameOriginX, frameOriginY, FRAME_WIDTH, FRAME_HEIGHT, FRAME_BORDER_THICKNESS, FRAME_BORDER_HORIZONTAL, FRAME_BORDER_VERTICAL, FRAME_BORDER_TOP_LEFT, FRAME_BORDER_TOP_RIGHT, FRAME_BORDER_BOTTOM_RIGHT, FRAME_BORDER_BOTTOM_LEFT)
+}
+
+func displayGameObjects() {
+	displaySnake()
+	displayApple()
+}
+
+func displaySnake() {
+	for _, snakeCoordinate := range snake.points {
+		print(snakeCoordinate.x, snakeCoordinate.y, 1, 1, snake.symbol)
+	}
+}
+
+func displayApple() {
+	print(apple.point.x, apple.point.y, 1, 1, apple.symbol)
 }
 
 func printUnfilledRectangle(xOrigin, yOrigin, width, height, borderThickness int, horizontalOutline, verticalOutline, topLeftOutline, topRightOutline, bottomRightOutline, bottomLeftOutline rune) {
