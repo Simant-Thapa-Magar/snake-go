@@ -112,7 +112,33 @@ func updateSnake() {
 		snakeHeadX + snake.columnVelocity,
 		snakeHeadY + snake.rowVelocity,
 	})
-	snake.points = snake.points[1:]
+	if !isAppleInsideSnake() {
+		snake.points = snake.points[1:]
+	}
+	updateSnakeIfBeyoundBorder()
+}
+
+func updateSnakeIfBeyoundBorder() {
+	originX, originY := getFrameOrigin()
+	topY := originY
+	bottomY := originY + FRAME_HEIGHT
+	leftX := originX
+	rightX := originX + FRAME_WIDTH - 1
+	for _, snakeCoordinate := range snake.points {
+		if snakeCoordinate.y <= topY {
+			// if above
+			snakeCoordinate.y = bottomY - 1
+		} else if snakeCoordinate.y >= bottomY {
+			// if below
+			snakeCoordinate.y = topY + 1
+		} else if snakeCoordinate.x >= rightX {
+			// if right
+			snakeCoordinate.x = leftX + 1
+		} else if snakeCoordinate.x <= leftX {
+			// if left
+			snakeCoordinate.x = rightX - 1
+		}
+	}
 }
 
 func isAppleInsideSnake() bool {
