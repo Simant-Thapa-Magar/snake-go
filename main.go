@@ -121,10 +121,12 @@ func getSnakeHeadCoordinates() (int, int) {
 
 func updateSnake() {
 	snakeHeadX, snakeHeadY := getSnakeHeadCoordinates()
-	snake.points = append(snake.points, &Coordinate{
+	newSnakeHead := &Coordinate{
 		snakeHeadX + snake.columnVelocity,
 		snakeHeadY + snake.rowVelocity,
-	})
+	}
+	setSnakeWithinFrame(newSnakeHead)
+	snake.points = append(snake.points, newSnakeHead)
 	if !isAppleInsideSnake() {
 		coordinatesToClear = append(coordinatesToClear, snake.points[0])
 		snake.points = snake.points[1:]
@@ -132,32 +134,30 @@ func updateSnake() {
 		score++
 		displayGameScore()
 	}
-	updateSnakeIfBeyoundBorder()
 	if isSnakeEatingItself() {
 		isGameOver = true
 	}
 }
 
-func updateSnakeIfBeyoundBorder() {
+func setSnakeWithinFrame(snakeCoordinate *Coordinate) {
 	originX, originY := getFrameOrigin()
 	topY := originY
 	bottomY := originY + FRAME_HEIGHT
 	leftX := originX
 	rightX := originX + FRAME_WIDTH - 1
-	for _, snakeCoordinate := range snake.points {
-		if snakeCoordinate.y <= topY {
-			// if above
-			snakeCoordinate.y = bottomY - 1
-		} else if snakeCoordinate.y >= bottomY {
-			// if below
-			snakeCoordinate.y = topY + 1
-		} else if snakeCoordinate.x >= rightX {
-			// if right
-			snakeCoordinate.x = leftX + 1
-		} else if snakeCoordinate.x <= leftX {
-			// if left
-			snakeCoordinate.x = rightX - 1
-		}
+
+	if snakeCoordinate.y <= topY {
+		// if above
+		snakeCoordinate.y = bottomY - 1
+	} else if snakeCoordinate.y >= bottomY {
+		// if below
+		snakeCoordinate.y = topY + 1
+	} else if snakeCoordinate.x >= rightX {
+		// if right
+		snakeCoordinate.x = leftX + 1
+	} else if snakeCoordinate.x <= leftX {
+		// if left
+		snakeCoordinate.x = rightX - 1
 	}
 }
 
@@ -182,7 +182,7 @@ func isAppleInsideSnake() bool {
 
 func getNewAppleCoordinate() (int, int) {
 	rand.Seed(time.Now().UnixMicro())
-	randomX := rand.Intn(FRAME_WIDTH - 1)
+	randomX := rand.Intn(FRAME_WIDTH - 3)
 	randomY := rand.Intn(FRAME_HEIGHT - 1)
 
 	newCoordinate := &Coordinate{
@@ -212,15 +212,15 @@ func updateGameState() {
 
 func transformCoordinateInsideFrame(coordinate *Coordinate) {
 	frameOriginX, frameOriginY := getFrameOrigin()
-	frameOriginX++
-	frameOriginY++
+	frameOriginX += 1
+	frameOriginY += 1
 	coordinate.x += frameOriginX
 	coordinate.y += frameOriginY
 	for coordinate.x >= frameOriginX+FRAME_WIDTH {
-		coordinate.x -= FRAME_WIDTH
+		coordinate.x--
 	}
 	for coordinate.y >= frameOriginY+FRAME_HEIGHT {
-		coordinate.y -= FRAME_HEIGHT
+		coordinate.y--
 	}
 }
 
