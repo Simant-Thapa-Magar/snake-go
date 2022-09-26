@@ -182,8 +182,8 @@ func isAppleInsideSnake() bool {
 
 func getNewAppleCoordinate() (int, int) {
 	rand.Seed(time.Now().UnixMicro())
-	randomX := rand.Intn(FRAME_WIDTH - 3)
-	randomY := rand.Intn(FRAME_HEIGHT - 1)
+	randomX := rand.Intn(FRAME_WIDTH - 2)
+	randomY := rand.Intn(FRAME_HEIGHT - 2)
 
 	newCoordinate := &Coordinate{
 		randomX, randomY,
