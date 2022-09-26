@@ -142,7 +142,7 @@ func updateSnake() {
 func setSnakeWithinFrame(snakeCoordinate *Coordinate) {
 	originX, originY := getFrameOrigin()
 	topY := originY
-	bottomY := originY + FRAME_HEIGHT
+	bottomY := originY + FRAME_HEIGHT - 1
 	leftX := originX
 	rightX := originX + FRAME_WIDTH - 1
 
@@ -219,7 +219,7 @@ func transformCoordinateInsideFrame(coordinate *Coordinate) {
 	for coordinate.x >= frameOriginX+FRAME_WIDTH {
 		coordinate.x--
 	}
-	for coordinate.y >= frameOriginY+FRAME_HEIGHT {
+	for coordinate.y >= frameOriginY+FRAME_HEIGHT-1 {
 		coordinate.y--
 	}
 }
@@ -377,12 +377,12 @@ func printUnfilledRectangle(xOrigin, yOrigin, width, height, borderThickness int
 			lowerBorder = horizontalOutline
 		}
 		print(xOrigin+i, yOrigin, borderThickness, borderThickness, tcell.StyleDefault, upperBorder)
-		print(xOrigin+i, yOrigin+height, borderThickness, borderThickness, tcell.StyleDefault, lowerBorder)
+		print(xOrigin+i, yOrigin+height-1, borderThickness, borderThickness, tcell.StyleDefault, lowerBorder)
 		// lower boundry
 	}
 
 	// side boundry
-	for i := 1; i < height; i++ {
+	for i := 1; i < height-1; i++ {
 		print(xOrigin, yOrigin+i, borderThickness, borderThickness, tcell.StyleDefault, verticalBorder)
 		print(xOrigin+width-1, yOrigin+i, borderThickness, borderThickness, tcell.StyleDefault, verticalBorder)
 	}
