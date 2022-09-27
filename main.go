@@ -177,8 +177,8 @@ func isAppleInsideSnake() bool {
 
 func getNewAppleCoordinate() (int, int) {
 	rand.Seed(time.Now().UnixMicro())
-	randomX := rand.Intn(FRAME_WIDTH - 2)
-	randomY := rand.Intn(FRAME_HEIGHT - 2)
+	randomX := rand.Intn(FRAME_WIDTH - 2*FRAME_BORDER_THICKNESS)
+	randomY := rand.Intn(FRAME_HEIGHT - 2*FRAME_BORDER_THICKNESS)
 
 	newCoordinate := &Coordinate{
 		randomX, randomY,
@@ -207,8 +207,8 @@ func updateGameState() {
 
 func transformCoordinateInsideFrame(coordinate *Coordinate) {
 	leftX, topY, rightX, bottomY := getBoundaries()
-	coordinate.x += leftX + 1
-	coordinate.y += topY + 1
+	coordinate.x += leftX + FRAME_BORDER_THICKNESS
+	coordinate.y += topY + FRAME_BORDER_THICKNESS
 	for coordinate.x >= rightX {
 		coordinate.x--
 	}
@@ -293,7 +293,7 @@ func print(x, y, w, h int, style tcell.Style, char rune) {
 }
 
 func getFrameOrigin() (int, int) {
-	return (screenWidth-FRAME_WIDTH)/2 - 1, (screenHeight-FRAME_HEIGHT)/2 - 1
+	return (screenWidth-FRAME_WIDTH)/2 - FRAME_BORDER_THICKNESS, (screenHeight-FRAME_HEIGHT)/2 - FRAME_BORDER_THICKNESS
 }
 
 func displayFrame() {
@@ -384,8 +384,8 @@ func printUnfilledRectangle(xOrigin, yOrigin, width, height, borderThickness int
 func getBoundaries() (int, int, int, int) {
 	originX, originY := getFrameOrigin()
 	topY := originY
-	bottomY := originY + FRAME_HEIGHT - 1
+	bottomY := originY + FRAME_HEIGHT - FRAME_BORDER_THICKNESS
 	leftX := originX
-	rightX := originX + FRAME_WIDTH - 1
+	rightX := originX + FRAME_WIDTH - FRAME_BORDER_THICKNESS
 	return leftX, topY, rightX, bottomY
 }
