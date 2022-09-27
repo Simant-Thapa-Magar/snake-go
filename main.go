@@ -45,7 +45,6 @@ const FRAME_BORDER_BOTTOM_LEFT = '╚'
 const SNAKE_SYMBOL = 0x2588
 const APPLE_SYMBOL = 0x25CF
 
-// This program just prints "Hello, World!".  Press ESC to exit.
 func main() {
 	initScreen()
 	initializeGameObjects()
@@ -140,11 +139,7 @@ func updateSnake() {
 }
 
 func setSnakeWithinFrame(snakeCoordinate *Coordinate) {
-	originX, originY := getFrameOrigin()
-	topY := originY
-	bottomY := originY + FRAME_HEIGHT
-	leftX := originX
-	rightX := originX + FRAME_WIDTH - 1
+	leftX, topY, rightX, bottomY := getBoundaries()
 
 	if snakeCoordinate.y <= topY {
 		// if above
@@ -182,8 +177,8 @@ func isAppleInsideSnake() bool {
 
 func getNewAppleCoordinate() (int, int) {
 	rand.Seed(time.Now().UnixMicro())
-	randomX := rand.Intn(FRAME_WIDTH - 3)
-	randomY := rand.Intn(FRAME_HEIGHT - 1)
+	randomX := rand.Intn(FRAME_WIDTH - 2*FRAME_BORDER_THICKNESS)
+	randomY := rand.Intn(FRAME_HEIGHT - 2*FRAME_BORDER_THICKNESS)
 
 	newCoordinate := &Coordinate{
 		randomX, randomY,
@@ -211,15 +206,13 @@ func updateGameState() {
 }
 
 func transformCoordinateInsideFrame(coordinate *Coordinate) {
-	frameOriginX, frameOriginY := getFrameOrigin()
-	frameOriginX += 1
-	frameOriginY += 1
-	coordinate.x += frameOriginX
-	coordinate.y += frameOriginY
-	for coordinate.x >= frameOriginX+FRAME_WIDTH {
+	leftX, topY, rightX, bottomY := getBoundaries()
+	coordinate.x += leftX + FRAME_BORDER_THICKNESS
+	coordinate.y += topY + FRAME_BORDER_THICKNESS
+	for coordinate.x >= rightX {
 		coordinate.x--
 	}
-	for coordinate.y >= frameOriginY+FRAME_HEIGHT {
+	for coordinate.y >= bottomY {
 		coordinate.y--
 	}
 }
@@ -300,7 +293,7 @@ func print(x, y, w, h int, style tcell.Style, char rune) {
 }
 
 func getFrameOrigin() (int, int) {
-	return (screenWidth-FRAME_WIDTH)/2 - 1, (screenHeight-FRAME_HEIGHT)/2 - 1
+	return (screenWidth-FRAME_WIDTH)/2 - FRAME_BORDER_THICKNESS, (screenHeight-FRAME_HEIGHT)/2 - FRAME_BORDER_THICKNESS
 }
 
 func displayFrame() {
@@ -365,7 +358,6 @@ func printUnfilledRectangle(xOrigin, yOrigin, width, height, borderThickness int
 	var upperBorder, lowerBorder rune
 	verticalBorder := verticalOutline
 	for i := 0; i < width; i++ {
-		// upper boundry
 		if i == 0 {
 			upperBorder = topLeftOutline
 			lowerBorder = bottomLeftOutline
@@ -376,14 +368,24 @@ func printUnfilledRectangle(xOrigin, yOrigin, width, height, borderThickness int
 			upperBorder = horizontalOutline
 			lowerBorder = horizontalOutline
 		}
+		// upper boundry
 		print(xOrigin+i, yOrigin, borderThickness, borderThickness, tcell.StyleDefault, upperBorder)
-		print(xOrigin+i, yOrigin+height, borderThickness, borderThickness, tcell.StyleDefault, lowerBorder)
 		// lower boundry
+		print(xOrigin+i, yOrigin+height-1, borderThickness, borderThickness, tcell.StyleDefault, lowerBorder)
 	}
 
 	// side boundry
-	for i := 1; i < height; i++ {
+	for i := 1; i < height-1; i++ {
 		print(xOrigin, yOrigin+i, borderThickness, borderThickness, tcell.StyleDefault, verticalBorder)
 		print(xOrigin+width-1, yOrigin+i, borderThickness, borderThickness, tcell.StyleDefault, verticalBorder)
 	}
+}
+
+func getBoundaries() (int, int, int, int) {
+	originX, originY := getFrameOrigin()
+	topY := originY
+	bottomY := originY + FRAME_HEIGHT - FRAME_BORDER_THICKNESS
+	leftX := originX
+	rightX := originX + FRAME_WIDTH - FRAME_BORDER_THICKNESS
+	return leftX, topY, rightX, bottomY
 }
